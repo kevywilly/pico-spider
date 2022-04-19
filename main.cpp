@@ -3,21 +3,16 @@
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 #include "hardware/i2c.h"
-#include "ik/pos.h"
-#include "ik/dh.h"
-#include "ik/matrix.h"
-#include "ik/link.h"
+#include "kinematics//pos.h"
+#include "kinematics/matrix.h"
+#include "kinematics/link.h"
 
 #define SERVO_MIN_PWM 124
 #define SERVO_MAX_PWM 544
 
 #include "src/pca9685.h"
-#include "ik/chain.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
-#include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/schema/schema_generated.h"
-#include "tensorflow/lite/version.h"
+#include "kinematics/chain.h"
+
 
 bool reserved_addr(uint8_t addr) {
     return (addr & 0x78) == 0 || (addr & 0x78) == 0x78;
@@ -87,32 +82,20 @@ void test_servo() {
     }
 }
 
-ik_link_t coxa0;
-ik_link_t femur0;
-ik_link_t tibia0;
-ik_chain_t chain0;
+ik_link_st coxa0;
+ik_link_st femur0;
+ik_link_st tibia0;
+ik_chain_st chain0;
 
-
-    tflite::ErrorReporter* error_reporter = nullptr;
-    const tflite::Model* model = nullptr;
-    tflite::MicroInterpreter* interpreter = nullptr;
-    TfLiteTensor* input = nullptr;
-    TfLiteTensor* output = nullptr;
-    int inference_count = 0;
-    constexpr int kTensorArenaSize = 2000;
-    uint8_t tensor_arena[kTensorArenaSize];
 
 int main() {
     // Enable UART so we can print status output
     stdio_init_all();
 
-    static tflite::MicroErrorReporter micro_error_reporter;
-    error_reporter = &micro_error_reporter;
-
-    coxa0 = ik_link_init("COXA0", 0, -10, 90,(ik_dh_init(24,90,0)));
-    femur0 = ik_link_init("FEMUR0", 0, -90, 90, (ik_dh_init(24,90,0)));
-    tibia0 = ik_link_init("TIBIA0", 0, 90, 90+45, (ik_dh_init(24,90,0)));
-    ik_link_t links[3] = {coxa0, femur0, tibia0};
+    coxa0 = ik_link_init("COXA0", 0, -10, 90,{24,90,0});
+    femur0 = ik_link_init("FEMUR0", 0, -90, 90, {38,0,0});
+    tibia0 = ik_link_init("TIBIA0", 0, 90, 90+45, {77,0,0});
+    ik_link_st links[3] = {coxa0, femur0, tibia0};
 
     chain0 = ik_chain_init("LEG0", links, 3);
 
@@ -121,10 +104,6 @@ int main() {
         ik_pos3d_print(chain0.position);
     }
 
-
-
     test_servo();
-
     return 0;
-
 }
