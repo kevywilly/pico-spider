@@ -7,7 +7,7 @@ project(pico_spider C CXX)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(pico_spider main.cpp src/pca9685.h model.cpp )
+add_executable(pico_spider main.cpp src/pca9685.h model.cpp src/leg.h src/body.h src/structs.h src/joint.h)
 
 target_include_directories(pico_spider
         PUBLIC
