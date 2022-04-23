@@ -1,10 +1,11 @@
 #define DEBUG 1
 
+#include <vector>
 #include <stdio.h>
 #include <pico/stdio.h>
 #include "hardware/i2c.h"
-#include "fk/f3d.h"
-#include "fk/inverse.h"
+#include "ik/chain.h"
+#include "ik/inverse.h"
 
 
 #define COXA_LEN 24
@@ -35,7 +36,8 @@
 
 #include "src/pca9685.h"
 #include "src/quadruped.h"
-#include "src/printutils.h"
+
+using namespace ik;
 
 Quadruped *quadruped;
 
@@ -65,17 +67,13 @@ void test_servo() {
 }
 
 void init_body() {
-    Chain *chains = new Chain[4];
-    for (int i = 0; i < 4; i++) {
-        Link *links = new Link[3]{
-                Link(COXA_THETA, DHParams{COXA_LEN, COXA_ALPHA, 0}),
-                Link(FEMUR_THETA, DHParams{FEMUR_LEN, FEMUR_ALPHA, 0}),
-                Link(TIBIA_THETA, DHParams{TIBIA_LEN, TIBIA_ALPHA, 0}),
-        };
-        chains[i] = Chain(i, links, 3);
-    }
+    vector<Chain> chains;
+    chains.push_back(Chain("c0", {COXA_THETA,FEMUR_THETA,TIBIA_THETA}, {COXA_LEN,FEMUR_LEN,TIBIA_LEN}, {COXA_ALPHA,FEMUR_ALPHA,TIBIA_ALPHA},{0,0,0}));
+    chains.push_back(Chain("c1", {COXA_THETA,FEMUR_THETA,TIBIA_THETA}, {COXA_LEN,FEMUR_LEN,TIBIA_LEN}, {COXA_ALPHA,FEMUR_ALPHA,TIBIA_ALPHA},{0,0,0}));
+    chains.push_back(Chain("c2", {COXA_THETA,FEMUR_THETA,TIBIA_THETA}, {COXA_LEN,FEMUR_LEN,TIBIA_LEN}, {COXA_ALPHA,FEMUR_ALPHA,TIBIA_ALPHA},{0,0,0}));
+    chains.push_back(Chain("c3", {COXA_THETA,FEMUR_THETA,TIBIA_THETA}, {COXA_LEN,FEMUR_LEN,TIBIA_LEN}, {COXA_ALPHA,FEMUR_ALPHA,TIBIA_ALPHA},{0,0,0}));
 
-    uint8_t pins[12] = {0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14};
+    vector<int> pins = {0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14};
 
     quadruped = new Quadruped(
             chains,
@@ -85,33 +83,27 @@ void init_body() {
 }
 
 int main() {
+
     // Enable UART so we can print status output
     stdio_init_all();
-
 
     while (!keypressed()) {}
 
     init_body();
+    quadruped->print();
 
-    printf("Initial Position: \n");
-    quadruped->chains[0].position.print();
-    printf("Initial Angles: \n");
-    quadruped->chains[0].printThetas();
-    printf("Initial Angle Estimate: \n");
+    vector<vector<float>> pos = quadruped->getPositions();
+    quadruped->setTargetPositions(pos);
+    while(!quadruped->atTargets()) {
+        quadruped->moveTowardTargets();
+    }
 
-    quadruped->setTargetPositions(quadruped->chains[0].position);
-
-    tblPrint(quadruped->targetPositions, 3, 4);
-    tblPrint(quadruped->targetAngles, 3, 4);
-
-    /*
-    printf("\n");
-    quadruped->links[0]->setTheta(45);
-    quadruped->chains[0].printThetas();
-    result = quadruped->chains[0].calcPosition();
-    result.print();
-     */
-
+    quadruped->print();
+    quadruped->setTargetOffsets({{0,0,-10},{0,0,-10}, {0,0,0}, {0,0,0}});
+    while(!quadruped->atTargets()) {
+        quadruped->moveTowardTargets();
+    }
+    quadruped->print();
     //test_servo();
     return 0;
 }

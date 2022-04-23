@@ -11,7 +11,7 @@ add_executable(pico_spider main.cpp src/pca9685.h model.cpp src/leg.h src/quadru
 
 target_include_directories(pico_spider
         PUBLIC
-        /Users/kevywilly/Documents/Projects/Robotics/libraries/fk/src
+        /Users/kevywilly/Documents/Projects/Robotics/libraries/ik/src
         )
 
 # Initalise the SDK

@@ -4,88 +4,92 @@
 
 #ifndef PICO_SPIDER_QUADRUPED_H
 #define PICO_SPIDER_QUADRUPED_H
+#include <ik/chain.h>
 
-#include <fk/chain.h>
+using namespace ik;
 
-using namespace fk;
-
+static const vector<vector<float>> HOME_OFFSET = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},};
 
 class Quadruped {
 
 public:
+
     static const int num_chains = 4;
     static const int dof = 3;
     static const int num_links = dof*num_chains;
     pca9685_pwm_config_st pwm_config;
-    Chain * chains;
-    Link ** links;
-    uint8_t * pins;
-    float * targetAngles;
-    float * targetPositions;
+    vector<Chain> chains;
+    vector<int> pins;
 
     Quadruped() {}
-    Quadruped(Chain *chains, uint8_t *, pca9685_pwm_config_st pwm_config) : chains(chains), pins(pins), pwm_config(pwm_config) {
-        links = new Link*[num_links];
-        Link ** p = links;
-        for(int i=0; i < num_chains; i++) {
-            for(int j = 0; j<dof; j++) {
-                *p++ = &chains[i].links[j];
-            }
-        }
-
-        float * targetPositions = new float[12];
-        float * targetAngles = new float[12];
-        for(int i=0; i < 12; i++) {
-            targetAngles[i] = 0;
-            targetPositions[i] = 0;
-        }
+    Quadruped(vector<Chain> chains, vector<int> pins, pca9685_pwm_config_st pwm_config) : chains(chains), pins(pins), pwm_config(pwm_config) {
     }
 
     void init() {
         pca9685_begin(&pwm_config);
     }
 
-    f3d_t * getPositions() {
-        f3d_t * p = new f3d_t[num_chains];
-        for(int i=0; i < num_chains; i++) {
-            p[i] = chains[i].position;
+    vector<vector<float>> getPositions() {
+        vector<vector<float>> p;
+        for (const auto &item: chains){
+            p.push_back(item.position);
         }
         return p;
     }
 
-    void calcPositions(f3d_t * results) {
-        for(int i=0; i < num_chains; i++) {
-            results[i] = chains[i].calcPosition();
+    vector<vector<float>> getAngles() {
+        vector<vector<float>> p;
+        for (const auto &item: chains){
+            p.push_back(item.angle);
+        }
+        return p;
+    }
+
+    vector<vector<float>> getTargetAngles() {
+        vector<vector<float>> p;
+        for (const auto &item: chains){
+            p.push_back(item.targetAngle);
+        }
+        return p;
+    }
+
+    void calcPositions() {
+        for (auto &item: chains){
+            item.calcPosition();
         }
     }
 
-    void setTargetPositions(f3d_t * positions) {
-        float * a = targetAngles;
-        float * p = targetPositions;
-
+    void setTargetPositions(vector<vector<float>> p) {
         for(int i=0; i < num_chains; i++) {
-            *p++ = positions[i].x;
-            *p++ = positions[i].y;
-            *p++ = positions[i].z;
-
-            ik3d(&chains[i], positions[i], a);
-            a+=3;
+            chains.at(i).targetAngle = ik3d(&chains.at(i), p.at(i));
         }
     }
 
-    void setTargetPositions(f3d_t position) {
-        f3d_t p[4] = {position, position, position, position};
-        setTargetPositions(p);
-    }
-
-
-    void calcTargets() {
-        //Pos3d * p = targetAngles;
+    void setTargetOffsets(vector<vector<float>> p) {
         for(int i=0; i < num_chains; i++) {
-
+            chains.at(i).targetAngle = ik3d(&chains.at(i), chains.at(i).positionOffset(p.at(i)));
         }
     }
 
+    void moveTowardTargets() {
+        for (auto &item: chains) {
+            item.moveTowardTarget(1);
+        }
+    }
+    bool atTargets() {
+        for (auto &item: chains) {
+            if(!item.atTarget()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void print() {
+        for (auto &item: chains) {
+            item.print();
+        }
+    }
 
 };
 
