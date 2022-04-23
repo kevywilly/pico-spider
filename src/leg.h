@@ -12,7 +12,7 @@
 
 class Leg {
 private:
-    pca9685_t * _servo_controller;
+    pca9685_pwm_config_st * _servo_controller;
 public:
     static const uint8_t num_joints = 3;
     ik_link_st link;

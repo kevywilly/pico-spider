@@ -7,11 +7,11 @@ project(pico_spider C CXX)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(pico_spider main.cpp src/pca9685.h model.cpp src/leg.h src/body.h src/structs.h src/joint.h)
+add_executable(pico_spider main.cpp src/pca9685.h model.cpp src/leg.h src/quadruped.h src/structs.h src/joint.h src/printutils.h)
 
 target_include_directories(pico_spider
         PUBLIC
-        /Users/kevywilly/Documents/Projects/Robotics/libraries/ik-library/src
+        /Users/kevywilly/Documents/Projects/Robotics/libraries/fk/src
         )
 
 # Initalise the SDK

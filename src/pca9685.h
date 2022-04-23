@@ -33,18 +33,19 @@
 #define SERVO_MIN_ANGLE -90
 #endif
 
-typedef struct pca9685_t {
+typedef struct pca9685_pwm_config_st {
     i2c_inst_t *i2c;
     uint8_t sda;
     uint8_t scl;
     uint8_t i2c_address;
-} pca9685_t;
+    uint8_t frequency;
+} pca9685_pwm_config_st;
 
 void pca9685_loop(uint64_t TEllapsed) {
     return;
 }
 
-void pca9685_write_register(pca9685_t *pca, uint8_t reg, uint8_t value) {
+void pca9685_write_register(pca9685_pwm_config_st *pca, uint8_t reg, uint8_t value) {
     uint8_t D[2];
     D[0] = reg;
     D[1] = value;
@@ -52,7 +53,7 @@ void pca9685_write_register(pca9685_t *pca, uint8_t reg, uint8_t value) {
     return;
 }
 
-uint8_t pca9685_read_register(pca9685_t *pca, uint8_t reg) {
+uint8_t pca9685_read_register(pca9685_pwm_config_st *pca, uint8_t reg) {
     uint8_t D[1];
     D[0] = reg;
 
@@ -62,7 +63,7 @@ uint8_t pca9685_read_register(pca9685_t *pca, uint8_t reg) {
     return D[0];
 }
 
-void pca9685_set_frequency(pca9685_t *pca, uint16_t frequency) {
+void pca9685_set_frequency(pca9685_pwm_config_st *pca, uint16_t frequency) {
     int preScalerVal = (25000000 / (4096 * frequency)) - 1;
     if (preScalerVal > 255) preScalerVal = 255;
     if (preScalerVal < 3) preScalerVal = 3;
@@ -80,7 +81,7 @@ void pca9685_set_frequency(pca9685_t *pca, uint16_t frequency) {
     return;
 }
 
-void pca9685_set_micros(pca9685_t *pca, uint8_t channel, int16_t micros) {
+void pca9685_set_micros(pca9685_pwm_config_st *pca, uint8_t channel, int16_t micros) {
     // map the angle to a PWM value (-90 to +90) to the servo
     // PWM_min & PWM_max values
 
@@ -103,7 +104,7 @@ void pca9685_set_micros(pca9685_t *pca, uint8_t channel, int16_t micros) {
 
 }
 
-void pca9685_set_position(pca9685_t *pca, uint8_t channel, int8_t angle) {
+void pca9685_set_position(pca9685_pwm_config_st *pca, uint8_t channel, int8_t angle) {
     // map the angle to a PWM value (-90 to +90) to the servo
     // PWM_min & PWM_max values
 
@@ -126,7 +127,7 @@ void pca9685_set_position(pca9685_t *pca, uint8_t channel, int8_t angle) {
 
 }
 
-void pca9685_begin(pca9685_t *pca) {
+void pca9685_begin(pca9685_pwm_config_st *pca) {
     i2c_init(pca->i2c, 100 * 1000);
     gpio_set_function(pca->sda, GPIO_FUNC_I2C);
     gpio_set_function(pca->scl, GPIO_FUNC_I2C);
@@ -136,6 +137,8 @@ void pca9685_begin(pca9685_t *pca) {
     // configure the PCA9685 for driving servos
     pca9685_write_register(pca, 0x00, 0b10100000);
     pca9685_write_register(pca, 0x01, 0b00000100);
+
+    pca9685_set_frequency(pca, pca->frequency);
 }
 
 /*

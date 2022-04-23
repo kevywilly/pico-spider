@@ -9,7 +9,7 @@
 
 class Joint {
 public:
-    pca9685_t servo;
+    pca9685_pwm_config_st servo;
 
 };
 #endif //PICO_SPIDER_JOINT_H
