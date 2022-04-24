@@ -20,7 +20,7 @@
 #define FEMUR_THETA_MAX 90
 #define FEMUR_ALPHA 0
 
-#define TIBIA_LEN 77
+#define TIBIA_LEN 82
 #define TIBIA_THETA 90
 #define TIBIA_THETA_MIN 0
 #define TIBIA_THETA_MAX 90+45

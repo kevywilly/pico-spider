@@ -47,27 +47,15 @@ public:
     }
 
     vector<vector<float>> getPositions() {
-        vector<vector<float>> p;
-        for (const auto &item: legs){
-            p.push_back(item.position);
-        }
-        return p;
+        return {legs[0].position, legs[1].position, legs[2].position, legs[3].position};
     }
 
     vector<vector<float>> getAngles() {
-        vector<vector<float>> p;
-        for (const auto &item: legs){
-            p.push_back(item.angle);
-        }
-        return p;
+        return {legs[0].angles, legs[1].angles, legs[2].angles, legs[3].angles};
     }
 
     vector<vector<float>> getTargetAngles() {
-        vector<vector<float>> p;
-        for (const auto &item: legs){
-            p.push_back(item.targetAngle);
-        }
-        return p;
+        return {legs[0].targetAngles, legs[1].targetAngles, legs[2].targetAngles, legs[3].targetAngles};
     }
 
     void calcPositions() {
@@ -78,13 +66,13 @@ public:
 
     void setTargetPositions(vector<vector<float>> p) {
         for(int i=0; i < num_chains; i++) {
-            legs.at(i).targetAngle = ik3d(&legs.at(i), p.at(i));
+            legs.at(i).targetAngles = ik3d(&legs.at(i), p.at(i));
         }
     }
 
     void setTargetOffsets(vector<vector<float>> p) {
         for(int i=0; i < num_chains; i++) {
-            legs.at(i).targetAngle = ik3d(&legs.at(i), legs.at(i).positionOffset(p.at(i)));
+            legs.at(i).targetAngles = ik3d(&legs.at(i), legs.at(i).positionOffset(p.at(i)));
         }
     }
 
@@ -116,7 +104,7 @@ public:
         vector<int>::iterator it = channels.begin();
         vector<int>::iterator ot = orientation.begin();
         for(auto &item : legs) {
-            for(auto &item : item.angle) {
+            for(auto &item : item.angles) {
                 pca9685_set_position(&pwm_config, *it++, item * (*ot++));
             }
         }
