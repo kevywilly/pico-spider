@@ -67,17 +67,19 @@ void test_servo() {
 }
 
 void init_body() {
-    vector<Chain> chains;
-    chains.push_back(Chain("c0", {COXA_THETA,FEMUR_THETA,TIBIA_THETA}, {COXA_LEN,FEMUR_LEN,TIBIA_LEN}, {COXA_ALPHA,FEMUR_ALPHA,TIBIA_ALPHA},{0,0,0}));
-    chains.push_back(Chain("c1", {COXA_THETA,FEMUR_THETA,TIBIA_THETA}, {COXA_LEN,FEMUR_LEN,TIBIA_LEN}, {COXA_ALPHA,FEMUR_ALPHA,TIBIA_ALPHA},{0,0,0}));
-    chains.push_back(Chain("c2", {COXA_THETA,FEMUR_THETA,TIBIA_THETA}, {COXA_LEN,FEMUR_LEN,TIBIA_LEN}, {COXA_ALPHA,FEMUR_ALPHA,TIBIA_ALPHA},{0,0,0}));
-    chains.push_back(Chain("c3", {COXA_THETA,FEMUR_THETA,TIBIA_THETA}, {COXA_LEN,FEMUR_LEN,TIBIA_LEN}, {COXA_ALPHA,FEMUR_ALPHA,TIBIA_ALPHA},{0,0,0}));
+    vector<Chain> legs;
+    legs.push_back(Chain("c0", {COXA_THETA, FEMUR_THETA, TIBIA_THETA}, {COXA_LEN, FEMUR_LEN, TIBIA_LEN}, {COXA_ALPHA, FEMUR_ALPHA, TIBIA_ALPHA}, {0, 0, 0}));
+    legs.push_back(Chain("c1", {COXA_THETA, FEMUR_THETA, TIBIA_THETA}, {COXA_LEN, FEMUR_LEN, TIBIA_LEN}, {COXA_ALPHA, FEMUR_ALPHA, TIBIA_ALPHA}, {0, 0, 0}));
+    legs.push_back(Chain("c2", {COXA_THETA, FEMUR_THETA, TIBIA_THETA}, {COXA_LEN, FEMUR_LEN, TIBIA_LEN}, {COXA_ALPHA, FEMUR_ALPHA, TIBIA_ALPHA}, {0, 0, 0}));
+    legs.push_back(Chain("c3", {COXA_THETA, FEMUR_THETA, TIBIA_THETA}, {COXA_LEN, FEMUR_LEN, TIBIA_LEN}, {COXA_ALPHA, FEMUR_ALPHA, TIBIA_ALPHA}, {0, 0, 0}));
 
-    vector<int> pins = {0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14};
+    vector<int> channels = {0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14};
+    vector<int> orientation = {1,1,1,-1,1,1,-1,1,1,1,1,1};
 
     quadruped = new Quadruped(
-            chains,
-            pins,
+            legs,
+            channels,
+            orientation,
             {.i2c = i2c0, .sda = PWM_DRIVER_SDA, .scl = PWM_DRIVER_SCL, .i2c_address = PWM_DRIVER_ADDRESS, .frequency = 50}
     );
 }
