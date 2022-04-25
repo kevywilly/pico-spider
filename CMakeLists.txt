@@ -7,7 +7,7 @@ project(pico_spider C CXX)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(pico_spider main.cpp src/pca9685.h model.cpp src/leg.h src/quadruped.h src/structs.h src/joint.h src/printutils.h)
+add_executable(pico_spider main.cpp src/pca9685.h src/quadruped.h)
 
 target_include_directories(pico_spider
         PUBLIC
@@ -18,11 +18,6 @@ target_include_directories(pico_spider
 pico_sdk_init()
 
 target_link_libraries(pico_spider pico_stdlib hardware_i2c)
-
-target_sources(pico_spider
-        PRIVATE
-        model.cpp
-        )
 
 pico_enable_stdio_usb(pico_spider 1)
 

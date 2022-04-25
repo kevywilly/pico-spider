@@ -4,19 +4,21 @@
 
 #ifndef PICO_SPIDER_QUADRUPED_H
 #define PICO_SPIDER_QUADRUPED_H
+
 #include <ik/chain.h>
 
 using namespace ik;
 
-static const vector<vector<float>> HOME_OFFSET = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},};
-
+#define ZERO_TRANSFORM  {{0,0,0},{0,0,0},{0,0,0},{0,0,0}}
 class Quadruped {
 
 public:
 
     static const int num_chains = 4;
     static const int dof = 3;
-    static const int num_links = dof*num_chains;
+    static const int num_links = dof * num_chains;
+
+    transform_matrix_t home = ZERO_TRANSFORM;
 
     /**
      * Vector of legs that make up the legs of the quaduped
@@ -46,38 +48,41 @@ public:
         pca9685_begin(&pwm_config);
     }
 
-    vector<vector<float>> getPositions() {
-        return {legs[0].position, legs[1].position, legs[2].position, legs[3].position};
+    void setHome(transform_matrix_t t) {
+        home = t;
+    }
+
+    void resetHome() {
+        home = ZERO_TRANSFORM;
+    }
+
+    void goHome() {
+        setTransform(home);
+        applyTransform(0);
     }
 
     vector<vector<float>> getAngles() {
         return {legs[0].angles, legs[1].angles, legs[2].angles, legs[3].angles};
     }
 
-    vector<vector<float>> getTargetAngles() {
-        return {legs[0].targetAngles, legs[1].targetAngles, legs[2].targetAngles, legs[3].targetAngles};
-    }
-
     void calcPositions() {
-        for (auto &item: legs){
+        for (auto &item: legs) {
             item.calcPosition();
         }
     }
 
-    void setTargetPositions(vector<vector<float>> p) {
-        for(int i=0; i < num_chains; i++) {
-            legs.at(i).targetAngles = ik3d(&legs.at(i), p.at(i));
+    void setTransform(transform_matrix_t transform) {
+        transform_matrix_t t = add(transform, home);
+        for (int i = 0; i < num_chains; i++) {
+            legs.at(i).targetAngles = ik3d_transform(&legs.at(i), transform.at(i));
         }
     }
 
-    void setTargetOffsets(vector<vector<float>> p) {
-        for(int i=0; i < num_chains; i++) {
-            legs.at(i).targetAngles = ik3d(&legs.at(i), legs.at(i).positionOffset(p.at(i)));
-        }
-    }
-
-    void moveTowardTargets() {
-        if(atTargets()) return;
+    /**
+     * Move gradually toward targets
+     */
+    void applyTransform(int step = 0) {
+        if (atTargets()) return;
 
         for (auto &item: legs) {
             item.moveTowardTarget(1);
@@ -87,7 +92,7 @@ public:
 
     bool atTargets() {
         for (auto &item: legs) {
-            if(!item.atTarget()) {
+            if (!item.atTarget()) {
                 return false;
             }
         }
@@ -103,8 +108,8 @@ public:
     void applyAngles() {
         vector<int>::iterator it = channels.begin();
         vector<int>::iterator ot = orientation.begin();
-        for(auto &item : legs) {
-            for(auto &item : item.angles) {
+        for (auto &item: legs) {
+            for (auto &item: item.angles) {
                 pca9685_set_position(&pwm_config, *it++, item * (*ot++));
             }
         }

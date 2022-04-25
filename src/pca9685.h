@@ -41,10 +41,6 @@ typedef struct pca9685_pwm_config_st {
     uint8_t frequency;
 } pca9685_pwm_config_st;
 
-void pca9685_loop(uint64_t TEllapsed) {
-    return;
-}
-
 void pca9685_write_register(pca9685_pwm_config_st *pca, uint8_t reg, uint8_t value) {
     uint8_t D[2];
     D[0] = reg;

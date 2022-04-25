@@ -7,7 +7,6 @@
 #include "ik/chain.h"
 #include "ik/inverse.h"
 
-
 #define COXA_LEN 24
 #define COXA_THETA 45
 #define COXA_THETA_MIN -10
@@ -39,7 +38,12 @@
 
 using namespace ik;
 
+
+
 Quadruped *quadruped;
+
+transform_matrix_t zeroTransform = {{0,0,0},{0,0,0},{0,0,0},{0,0,0}};
+transform_matrix_t walkTransform = {{0,0,60},{0,0,60},{0,0,60},{0,0,60}};
 
 bool keypressed() {
     int c = getchar_timeout_us(100);
@@ -84,6 +88,19 @@ void init_body() {
     );
 }
 
+void testOffsets() {
+    quadruped->setTransform(zeroTransform);
+    while(!quadruped->atTargets()) {
+        quadruped->applyTransform(1);
+    }
+    quadruped->print();
+
+    quadruped->setTransform({{0,0,-10},{0,0,-10}, {0,0,0}, {0,0,0}});
+    while(!quadruped->atTargets()) {
+        quadruped->applyTransform();
+    }
+    quadruped->print();
+}
 int main() {
 
     // Enable UART so we can print status output
@@ -94,18 +111,8 @@ int main() {
     init_body();
     quadruped->print();
 
-    vector<vector<float>> pos = quadruped->getPositions();
-    quadruped->setTargetPositions(pos);
-    while(!quadruped->atTargets()) {
-        quadruped->moveTowardTargets();
-    }
+    testOffsets();
 
-    quadruped->print();
-    quadruped->setTargetOffsets({{0,0,-10},{0,0,-10}, {0,0,0}, {0,0,0}});
-    while(!quadruped->atTargets()) {
-        quadruped->moveTowardTargets();
-    }
-    quadruped->print();
     //test_servo();
     return 0;
 }
